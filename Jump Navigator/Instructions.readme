@@ -1,5 +1,33 @@
-﻿R e a d m e
------------
+﻿ -- Jump Navigator --
+v20210101
 
-In this file you can include any instructions or other comments you want to have injected onto the 
-top of your final script. You can safely delete this file if you do not want any such comments.
+This is a script that uses a gyro, a Remote Control and a Cockpit to give you a nav computer.
+
+It gives you a screen where you can select a destination, after selection it will align your ship to to the destination and set the Jump Drives blind jump distance.
+
+The destinations are added, by adding them as waypoints on the Remote Control
+
+Running the block with "up" as argument will go up in the menu
+Running the block with "down" as argument will go down in the menu
+Running the block with "align" as the argument will align the ship to the destination, set the jump distance and tell you when the ship is aligned and ready to jump.
+Running the block with "off" as the argument will turn the PB to a low consumption mode, turns off the jump drive.
+
+To jump, use blind jump.
+
+Block names, as well as which LCD displays what, can be configured in the PB Custom Data.
+
+The Custom Data contains some more settings as well to help you setting up the script to your personal preferencies.
+
+This script can check the orientation of the Gyroscopes, thus it is not needed to place them in the same direction. 
+(I did not test this with all possible orientation combinations, so if you experience flaws in the math, please tell me your ship's exact configuration)
+
+!! This script is based on the script 'Jump Drive Nav Computer' made by Tekk. !!
+!! You can find the original script in the workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1752762222 !!
+
+The code is compressed, but you can find the original on Github:
+https://github.com/alenoi/SE-Jump-Navigator
+
+
+-------------------------------------------------------------------------
+------------ No modification beyond this line ----------------
+-------------------------------------------------------------------------
