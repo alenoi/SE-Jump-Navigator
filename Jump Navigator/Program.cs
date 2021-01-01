@@ -114,7 +114,7 @@ namespace IngameScript
                     + "If you play on a multiplayer server and the runtime of the PB is limited, modify the next variables accordingly" + "\n"
                     + "Server execution time limit = [0.3] ms" + "\n"
                     + "Heat limit = [30] %                                                    -- This is the percentage of the Server limit which is available for this script" + "\n"
-                    + "Runtime Echo = [1]" + "\n"
+                    + "Runtime Echo = [true]" + "\n"
                     ;
                 CustomData();
             }
