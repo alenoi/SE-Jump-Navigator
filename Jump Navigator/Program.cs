@@ -31,10 +31,8 @@ namespace IngameScript
         List<MyWaypointInfo> waypoints = new List<MyWaypointInfo>();
 
         Vector3D Target;
-        float RadToDeg = (float)(180 / Math.PI);
         float targetDistance = 0, distancePercent, MaxDistance, time;
         int selection = 0, numJumps, pageCount, pageSelect;
-        double yaw, pitch;
         string wayList, MaxDist, systemStatus = "", targetInfo, chargeTime, errors;
         int scriptspeed = 1;
         double serverLimit;
@@ -44,6 +42,7 @@ namespace IngameScript
         double avgcd = 0;
         int listsize = 8;
         float gyropower = 1;
+        string version = "";
 
         bool aligning = false;
         bool aligned = false;
@@ -100,7 +99,7 @@ namespace IngameScript
             }
             else
             {
-                Me.CustomData = ""
+                Me.CustomData = "version = [20200103]" + "\n"
                     + "To apply changes, please Recompile the script!" + "\n\n"
                     + "Main LCD Tag = [LCD Jump Main]" + "\n"
                     + "Status LCD Tag = [LCD Jump Status]" + "\n"
@@ -179,7 +178,15 @@ namespace IngameScript
                     case "Runtime Echo":
                         runtimeecho = bool.Parse(item[1]);
                         break;
+                    case "version":
+                        version = (item[1]);
+                        break;
                 }
+            }
+            if (version == "")
+            {
+                Me.CustomData = "";
+                CustomData();
             }
         }
 
@@ -238,22 +245,11 @@ namespace IngameScript
                     jumper.Enabled = true;
                     break;
                 case "align":
-                    aligning = !aligning;
+                    if (!close) { aligning = !aligning; }
+                    else { aligning = false; }
                     aligned = false;
                     close = false;
-                    break;
-                case "off":
-                    aligning = false;
-                    aligned = false;
-                    close = false;
-                    foreach (var item in gyros)
-                    {
-                        item.GyroOverride = false;
-                        item.GyroPower = gyropower;
-                        item.Roll = 0;
-                    }
-                    jumper.Enabled = !jumper.Enabled;
-                    break;
+                    break;                
                 case "":
                     break;
                 default:
@@ -275,7 +271,7 @@ namespace IngameScript
             scriptspeed += "Server limit: " + serverLimit + " ms\n";
             scriptspeed += "Avg runtime: " + Math.Round(avg, 3).ToString() + " ms\n";
             scriptspeed += "PB heat: " + Math.Round(((avg / serverLimit) * 100), 1) + "%\n";
-            scriptspeed += "Script performance: " + Math.Round((1 / (avgcd + 1)) * 100).ToString() + "%\n";
+            // scriptspeed += "Script performance: " + Math.Round((1 / (avgcd + 1)) * 100).ToString() + "%\n";
 
             return scriptspeed;
         }
@@ -332,7 +328,6 @@ namespace IngameScript
         {
             if (aligning)
             {
-                GetOrientation();
                 targetDistance = (float)((cockpit.GetPosition() - Target).Length()) / 1000;
 
                 if (targetDistance > 5)
@@ -342,21 +337,39 @@ namespace IngameScript
                         gyro.GyroOverride = true;
                         SetOrientation(gyro);
                     }
-                    distancePercent = ((targetDistance - 5) / (MaxDistance - 5)) * 100;                                     //Convert the desired distance to a percentage of the max distance, taking into account that 0% = 5km
+                    distancePercent = ((targetDistance - (float)5.1) / (MaxDistance - 5)) * 100;                                     //Convert the desired distance to a percentage of the max distance, taking into account that 0% = 5km
                     jumper.SetValueFloat("JumpDistance", distancePercent);
                     numJumps = (int)Math.Ceiling(targetDistance / MaxDistance);
                     targetInfo = "\n\nDestination: " + waypoints[selection].Name + "\n\nDistance: " + targetDistance + " KM" + "\nNumber of Jumps: " + numJumps + "\n\n-Coordinates-\n"
                             + waypoints[selection].Coords.ToString().Split(' ')[0] + "\n" + waypoints[selection].Coords.ToString().Split(' ')[1] + "\n" + waypoints[selection].Coords.ToString().Split(' ')[2] + "\n";
 
-                    if (Math.Max(Math.Abs(pitch), Math.Abs(yaw)) < 0.005)
+                    float sum = 0;
+                    foreach (var gyro in gyros)
+                    {
+                        sum += Math.Abs(gyro.Yaw) + Math.Abs(gyro.Pitch) + Math.Abs(gyro.Roll);
+                    }
+                    if (sum < 0.005)
                     {
                         aligned = true;
+                        foreach(var gyro in gyros)
+                        {
+                            gyro.Yaw = 0;
+                            gyro.Roll = 0;
+                            gyro.Pitch = 0;                            
+                        }
                     }
                 }
                 else
                 {
-                    close = true;
-                    aligning = false;
+                    if (!aligned)
+                    {
+                        close = true;
+                        aligning = false; 
+                    }
+                    else
+                    {
+                        aligned = false;
+                    }
                 }
             }
             else
@@ -376,19 +389,19 @@ namespace IngameScript
                 mainLCD.ContentType = ContentType.TEXT_AND_IMAGE;
                 mainLCD.Alignment = TextAlignment.LEFT;
                 mainLCD.FontColor = Color.Gray;
+                mainLCD.FontSize = 1.3F;
+                statusLCD.FontSize = 10;
                 mainLCD.WriteText(targetInfo);
 
                 if (aligned)
                 {
                     systemStatus = "Ready to jump";
                     statusLCD.BackgroundColor = Color.Green;
-                    jumper.Enabled = true;
                 }
                 else
                 {
                     systemStatus = "Aligning..."; mainLCD.ContentType = ContentType.TEXT_AND_IMAGE;
                     statusLCD.BackgroundColor = Color.Black;
-                    jumper.Enabled = false;
                 }
             }
             else
@@ -403,9 +416,10 @@ namespace IngameScript
                     }
                     else if (close && !aligned)
                     {
+                        mainLCD.Alignment = TextAlignment.CENTER;
                         systemStatus = "Warning";
                         statusLCD.BackgroundColor = Color.MediumVioletRed;
-                        mainLCD.WriteText("\n\nThe selected destination is\n too close\n\n Please select \nan other destination\n");
+                        mainLCD.WriteText("\n\n"+waypoints[selection].Name +"\n is only\n"+ Math.Round(((cockpit.GetPosition() - Target).Length()) / 1000,2)+" km away\n\n Please select \nan other destination\n");
 
                     }
                     else
@@ -434,41 +448,42 @@ namespace IngameScript
             chargeTime = info.Substring(info.LastIndexOf("in:") + 4, 6);
             chargeTime = chargeTime.Replace("\n", "");
             time = int.Parse(info.Substring(info.LastIndexOf("in:") + 4, 2));
-            MaxDist = info.Substring(info.LastIndexOf("distance:") + 9, 4);                            //go to start of "distance:", move 9 characters forward and then take the 4 characters ahead, eg. max jump distance
+            MaxDist = info.Substring(info.LastIndexOf("distance:") + 9, 5);                            //go to start of "distance:", move 9 characters forward and then take the 4 characters ahead, eg. max jump distance
             if (MaxDist.Contains("km"))                                                                //in case jump distance is less than 4 digits, cut out the "km" that will be included in the 4 characters
-                MaxDist = MaxDist.Substring(0, MaxDist.IndexOf('k') - 1);
+                MaxDist = MaxDist.Split(' ')[0];
             MaxDistance = float.Parse(MaxDist);                                                          //convert the cut out jump distance, from a string to a float
 
             if (time > 0) { charging = true; aligning = false; } else { charging = false; }
             if (jumper.Enabled) online = true; else online = false;
         }
-        public void GetOrientation()
+
+        private double round0(double d)
         {
-            Vector3D DirVect = Vector3D.TransformNormal(Target - cockpit.GetPosition(), MatrixD.Transpose(cockpit.WorldMatrix));
-            yaw = Math.Asin(DirVect.X / DirVect.Length()) * RadToDeg;
-            pitch = Math.Asin(DirVect.Y / DirVect.Length()) * RadToDeg;
+            return Math.Abs(d) < 0.0001 ? 0 : d;
         }
+
         public void SetOrientation(IMyGyro gyro)
         {
-            double cyaw, cpitch, gyaw, gpitch, dyaw, dpitch;
-            Vector3D DirVect = Vector3D.TransformNormal(Target - cockpit.GetPosition(), MatrixD.Transpose(cockpit.WorldMatrix));
-            cyaw = Math.Asin(DirVect.X / DirVect.Length());
-            cpitch = Math.Asin(DirVect.Y / DirVect.Length());
-            DirVect.Normalize();
+            if (gyro.Enabled)
+            {
+                Vector3D worldRV;
 
-            Quaternion gfwd;
-            gyro.Orientation.GetQuaternion(out gfwd);
+                Vector3 pos = cockpit.GetPosition();
+                Vector3 target = Target - pos;
+                QuaternionD QRV = QuaternionD.CreateFromTwoVectors(target, cockpit.WorldMatrix.Forward);
 
-            DirVect = Vector3D.Transform(DirVect, gfwd);
+                Vector3D axis;
+                double angle;
+                QRV.GetAxisAngle(out axis, out angle);
+                worldRV = axis * Math.Log(1 + round0(angle), 2);
 
-            gyaw = Math.Asin(DirVect.X);
-            gpitch = Math.Asin(DirVect.Y);
+                Vector3D gyroRV = Vector3D.TransformNormal(worldRV, MatrixD.Transpose(gyro.WorldMatrix));
 
-            dyaw = Math.Abs(cyaw - gyaw);
-            dpitch = Math.Abs(cpitch - gpitch);
+                gyro.Pitch = (float)gyroRV.X;
+                gyro.Yaw = (float)gyroRV.Y;
+                gyro.Roll = (float)gyroRV.Z;
 
-            gyro.Yaw = (float)(gyaw + dyaw);
-            gyro.Pitch = (float)(gpitch + dpitch);
+            }
         }
 
 
