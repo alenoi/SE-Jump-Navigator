@@ -43,6 +43,7 @@ namespace IngameScript
         int listsize = 8;
         float gyropower = 1;
         string version = "";
+        string ver = "20210103";
 
         bool aligning = false;
         bool aligned = false;
@@ -183,7 +184,7 @@ namespace IngameScript
                         break;
                 }
             }
-            if (version == "")
+            if (version != ver)
             {
                 Me.CustomData = "";
                 CustomData();
