@@ -43,6 +43,7 @@ namespace IngameScript
         int listsize = 8;
         float gyropower = 1;
         string version = "";
+        string ver = "20210103";
 
         bool aligning = false;
         bool aligned = false;
@@ -99,7 +100,7 @@ namespace IngameScript
             }
             else
             {
-                Me.CustomData = "version = [20200103]" + "\n"
+                Me.CustomData = "version = [" + ver + "]" + "\n"
                     + "To apply changes, please Recompile the script!" + "\n\n"
                     + "Main LCD Tag = [LCD Jump Main]" + "\n"
                     + "Status LCD Tag = [LCD Jump Status]" + "\n"
@@ -183,7 +184,7 @@ namespace IngameScript
                         break;
                 }
             }
-            if (version == "")
+            if (version != ver)
             {
                 Me.CustomData = "";
                 CustomData();
@@ -249,7 +250,7 @@ namespace IngameScript
                     else { aligning = false; }
                     aligned = false;
                     close = false;
-                    break;                
+                    break;
                 case "":
                     break;
                 default:
@@ -351,11 +352,11 @@ namespace IngameScript
                     if (sum < 0.005)
                     {
                         aligned = true;
-                        foreach(var gyro in gyros)
+                        foreach (var gyro in gyros)
                         {
                             gyro.Yaw = 0;
                             gyro.Roll = 0;
-                            gyro.Pitch = 0;                            
+                            gyro.Pitch = 0;
                         }
                     }
                 }
@@ -364,7 +365,7 @@ namespace IngameScript
                     if (!aligned)
                     {
                         close = true;
-                        aligning = false; 
+                        aligning = false;
                     }
                     else
                     {
@@ -419,7 +420,7 @@ namespace IngameScript
                         mainLCD.Alignment = TextAlignment.CENTER;
                         systemStatus = "Warning";
                         statusLCD.BackgroundColor = Color.MediumVioletRed;
-                        mainLCD.WriteText("\n\n"+waypoints[selection].Name +"\n is only\n"+ Math.Round(((cockpit.GetPosition() - Target).Length()) / 1000,2)+" km away\n\n Please select \nan other destination\n");
+                        mainLCD.WriteText("\n\n" + waypoints[selection].Name + "\n is only\n" + Math.Round(((cockpit.GetPosition() - Target).Length()) / 1000, 2) + " km away\n\n Please select \nan other destination\n");
 
                     }
                     else
