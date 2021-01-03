@@ -10,7 +10,6 @@ The destinations are added, by adding them as waypoints on the Remote Control
 Running the block with "up" as argument will go up in the menu
 Running the block with "down" as argument will go down in the menu
 Running the block with "align" as the argument will align the ship to the destination, set the jump distance and tell you when the ship is aligned and ready to jump.
-Running the block with "off" as the argument will turn the PB to a low consumption mode, turns off the jump drive.
 
 To jump, use blind jump.
 
