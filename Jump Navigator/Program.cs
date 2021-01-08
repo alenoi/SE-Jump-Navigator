@@ -110,6 +110,7 @@ namespace IngameScript
                     + "Gyro Tag = [Gyroscope]                                        -- if there is more then one, each one need to contain this tag in its name" + "\n"
                     + "Gyro Power = [1]" + "\n"
                     + "Main LCD size = [8]                                                  -- how many rows can fit to the screen. The default is 8 which is good for 1x1 LCDs. The Status LCD can be a 'Corner LCD' " + "\n"
+                    + "Main LCD Font size = [1.3]" + "\n" // TODO LCD fontsizes
                     + "Script speed = [1]                                                      -- 1: UpdateFrequency1 | 2:UpdateFrequency10 | 3:UpdateFrequency1"
                     + "If you play on a multiplayer server and the runtime of the PB is limited, modify the next variables accordingly" + "\n"
                     + "Server execution time limit = [0.3] ms" + "\n"
@@ -119,6 +120,9 @@ namespace IngameScript
                 CustomData();
             }
         }
+        // TODO Cockpit LCD
+        // TODO LCD span
+        // TODO LCD colors (CustomData)
 
         private void CustomDataProcess(string customData)
         {
@@ -444,15 +448,31 @@ namespace IngameScript
         }
         private void JumpDriveRead()
         {
-            //Get chargetime left and max jump distance from Jump Drive detailed info
-            String info = jumper.DetailedInfo;                                                         //Stuff detailed info on the Jump Drive into a string
-            chargeTime = info.Substring(info.LastIndexOf("in:") + 4, 6);
-            chargeTime = chargeTime.Replace("\n", "");
-            time = int.Parse(info.Substring(info.LastIndexOf("in:") + 4, 2));
-            MaxDist = info.Substring(info.LastIndexOf("distance:") + 9, 5);                            //go to start of "distance:", move 9 characters forward and then take the 4 characters ahead, eg. max jump distance
-            if (MaxDist.Contains("km"))                                                                //in case jump distance is less than 4 digits, cut out the "km" that will be included in the 4 characters
-                MaxDist = MaxDist.Split(' ')[0];
-            MaxDistance = float.Parse(MaxDist);                                                          //convert the cut out jump distance, from a string to a float
+            string info = jumper.DetailedInfo;
+            string[] infoRow = info.Split('\n');
+            string[,] infoData = new string[infoRow.Length, 3];
+
+            for (int i = 0; i < infoRow.Length; i++)
+            {
+                infoData[i, 0] = infoRow[i].Split(':')[0];
+                if (infoRow[i].Split(':')[1].Substring(0, 1) == " ")
+                {
+                    infoData[i, 1] = infoRow[i].Split(':')[1].Substring(1).Split(' ')[0];
+                }
+                else
+                {
+                    infoData[i, 1] = infoRow[i].Split(':')[1].Split(' ')[0];
+                }
+                if (infoRow[i].Split(':')[1].Substring(0).Substring(1).Split(' ').Length > 1)
+                {
+                    infoData[i, 2] = infoRow[i].Split(':')[1].Substring(0).Substring(1).Split(' ')[1];
+                }
+            }
+
+            time = float.Parse(infoData[5, 1]);
+            MaxDistance = float.Parse(infoData[6, 1]);
+            MaxDist = infoData[6, 1] + " " + infoData[6, 2];
+            chargeTime = infoData[5, 1] + " " + infoData[5, 2];
 
             if (time > 0) { charging = true; aligning = false; } else { charging = false; }
             if (jumper.Enabled) online = true; else online = false;
