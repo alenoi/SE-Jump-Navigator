@@ -469,10 +469,10 @@ namespace IngameScript
                 }
             }
 
-            time = float.Parse(infoData[5, 1]);
-            MaxDistance = float.Parse(infoData[6, 1]);
-            MaxDist = infoData[6, 1] + " " + infoData[6, 2];
-            chargeTime = infoData[5, 1] + " " + infoData[5, 2];
+            time = float.Parse(infoData[6, 1]);
+            MaxDistance = float.Parse(infoData[7, 1]);
+            MaxDist = infoData[7, 1] + " " + infoData[7, 2];
+            chargeTime = infoData[6, 1] + " " + infoData[6, 2];
 
             if (time > 0) { charging = true; aligning = false; } else { charging = false; }
             if (jumper.Enabled) online = true; else online = false;
